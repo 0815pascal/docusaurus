@@ -9,7 +9,7 @@ const config = {
   title: 'Codebase',
   tagline: 'Dinosaurs are cool',
   url: 'https://0815pascal.github.io',
-  baseUrl: '/',
+  baseUrl: '/docusaurus/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
