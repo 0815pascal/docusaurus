@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkdocusaurus=self.webpackChunkdocusaurus||[]).push([[3276],{7627:function(s){s.exports=JSON.parse('{"label":"Redirect","permalink":"/docusaurus/blog/tags/redirect","allTagsPath":"/docusaurus/blog/tags","count":1}')}}]);
