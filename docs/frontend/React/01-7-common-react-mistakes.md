@@ -52,6 +52,7 @@ const OtherComponentThatUsesProducts = () => {
     return (...)
 }
 ```
+
 ## 02 Multiple partially matching routes
 
 A common mistake is to have multiple routes with partially matching names. 
@@ -76,7 +77,7 @@ You should never mutate state directly as it might not cause a re-render if you 
 
 **Bad**:
 
-```javascript title="Fruits array reference hasn't changed"
+```javascript
 function MyComponent {
     const [fruits, setFruits] = React.useState([])
 
@@ -91,7 +92,7 @@ function MyComponent {
 
 **Good**: 
 
-```javascript title="Here we are passing in a new array to setFruits." 
+```javascript
 function MyComponent {
     const [fruits, setFruits] = React.useState([])
 
@@ -101,3 +102,174 @@ function MyComponent {
 
     return (...)
 ```
+
+## 04 Omitting functions in useEffect dependencies
+
+**Bad:**
+
+This is not ok, because fetchProduct won't re-run if productId changes
+
+```javascript
+function ProductgPage({productId}){
+    const [product, setProduct] = useState(null);
+
+    async function fetchProduct() {
+        const response = await ProductsApi.getProductById(productId)
+        const json = await response.json();
+        setProduct(json);
+    }
+
+    useEffect(() => {
+        fetchProduct();
+    }, []);
+}
+```
+
+**Good:**
+
+Valid because our effect only uses productid
+
+```javascript
+function ProductgPage({productId}){
+    const [product, setProduct] = useState(null);
+
+    useEffect(() => {
+        // By moving this function inside the effect, 
+        // we can clearly see the values it uses. 
+        async function fetchProduct() {
+            const response = await ProductsApi.getProductById(productId)
+            const json = await response.json();
+            setProduct(json);
+        }
+
+        fetchProduct();
+    }, [productId]);
+```
+
+## 05 Using state variable after setting its value
+
+`useState` hook is asynchronous, so it doesn't guarantee the latest value of a state variable immediately. If you want to access the latest value of a state variable you can use `useEffect`. 
+
+**Bad:**
+
+```javascript
+function MyComponent({productId}){
+    const [mousePosition, setMousePosition] = useState({
+        x:0,
+        y:0
+    })
+
+    const onChangeMousePosition = (newPosition) => {
+        setMousePosition({
+            x: newPosition.x,
+            y: newPosition.y    
+        })
+
+        if(mousePosition.x > 400){
+            // do something
+        }
+    }
+}
+```
+
+**Good:**
+
+```javascript
+function MyComponent({productId}){
+    const [mousePosition, setMousePosition] = useState({
+        x:0,
+        y:0
+    })
+
+    const onChangeMousePosition = (newPosition) => {
+        setMousePosition({
+            x: newPosition.x,
+            y: newPosition.y    
+        })
+    }
+
+    useEffect(() => {
+        if(mousePosition.x > 400){
+            // do something
+        }
+    }, [mousePosition])
+}
+```
+
+## Learning/using Redux too soon
+
+Before using Redux you should:
+
+- Feel comfortable with React and had tried using `useState`, `useReducer` or `context` to solve the problem you think Redux might solve.
+
+- Understand the kind of application you're building, the kinds of problems that you need to solve and how Redux takes care of those problems. 
+
+- Understand the tradeoffs involved in using Redux. 
+
+You can find more information here: 
+
+- https://redux.js.org/faq/general#when-should-i-learn-redux
+
+- https://blog.isquaredsoftware.com/2017/05/idiomatic-redux-tao-of-redux-part-1/
+
+- https://changelog.com/posts/when-and-when-not-to-reach-for-redux
+
+- https://medium.com/@dan_abramov/you-might-not-need-redux-be46360cf367
+
+## Using `memo`/`useMemo` too soon
+
+Before you apply optimizations like `memo` or `useMemo`, it might make sense to look if you can split the parts that change from the parts that don't change. 
+
+**Bad:**
+
+Changing the color would make the whole App component to re-render, resulting in a re-render of the `ExpensiveComponent`.
+
+This can be solved by putting `React.useMemo()` inside the `ExpensiveComponent`, but first it's worth eploring other solutions. 
+
+```javascript
+export default function App() {
+    let [color, setColor] = useState('red');
+    return (
+        <div>
+            <input 
+                value={color}
+                onChange={(event) => {
+                    setColor(event.target.value)
+                }}
+            />
+            <p style={{ color }}>Hello, world!</p>
+            <ExpensiveComponent />
+        </div>
+    );
+}
+```
+
+**Good:**
+
+```javascript
+export default function App() {
+    return (
+        <ColorPicker>
+            <p>Hello, world!</p>
+            <ExpensiveComponent />
+        </ColorPicker>
+    );
+}
+
+function ColorPicker({ children }) {
+    let [color, setColor] = useState("red");
+    return (
+        <div style={{ color }}
+            <input 
+                value={color}
+                onChange={(event) => {
+                    setColor(event.target.value)
+                }}
+            />
+            {children}
+        </div>
+    );
+}
+```
+
+
